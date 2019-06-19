@@ -1,6 +1,22 @@
 #include QMK_KEYBOARD_H
 
-// custom OS-specific shortcuts
+// linux key shortcuts
+#define LIN_MOD1          KC_LCTRL
+#define LIN_MOD2          KC_LALT
+#define LIN_MOD3          KC_LGUI
+#define LIN_NEXT_APP      KC_LGUI(KC_TAB)
+#define LIN_PREV_APP      KC_LGUI(KC_LSHIFT(KC_TAB))
+#define LIN_NEXT_TAB      KC_LALT(KC_TAB)
+#define LIN_PREV_TAB      KC_LALT(KC_LSHIFT(KC_TAB))
+#define LIN_NEXT_WORD     KC_LCTRL(KC_RGHT)
+#define LIN_PREV_WORD     KC_LCTRL(KC_LEFT)
+#define LIN_CUT           KC_LCTRL(KC_X)
+#define LIN_COPY          KC_LCTRL(KC_C)
+#define LIN_PASTE         KC_LCTRL(KC_V)
+#define LIN_UNDO          KC_LCTRL(KC_X)
+#define LIN_REDO          KC_LCTRL(KC_Y)
+
+// macOS key shortcuts
 #define MAC_MOD1            KC_LGUI
 #define MAC_MOD2            KC_LALT
 #define MAC_MOD3            KC_LCTRL
@@ -8,30 +24,23 @@
 #define MAC_PREV_APP        KC_LGUI(KC_LSHIFT(KC_TAB))
 #define MAC_NEXT_TAB        KC_LCTRL(KC_TAB)
 #define MAC_PREV_TAB        KC_LCTRL(KC_LSHIFT(KC_TAB))
-#define MAX_NEXT_WORD       KC_LALT(KC_RGHT)
-#define MAX_PREV_WORD       KC_LALT(KC_LEFT)
+#define MAC_NEXT_WORD       KC_LALT(KC_RGHT)
+#define MAC_PREV_WORD       KC_LALT(KC_LEFT)
 #define MAC_CUT             KC_LGUI(KC_X)
 #define MAC_COPY            KC_LGUI(KC_C)
 #define MAC_PASTE           KC_LGUI(KC_V)
 #define MAC_UNDO            KC_LGUI(KC_Z)
 #define MAC_REDO            KC_LGUI(KC_LSHIFT(KC_Z))
 
-#define LINUX_MOD1          KC_LCTRL
-#define LINUX_MOD2          KC_LALT
-#define LINUX_MOD3          KC_LGUI
-#define LINUX_NEXT_APP      KC_LGUI(KC_TAB)
-#define LINUX_PREV_APP      KC_LGUI(KC_LSHIFT(KC_TAB))
-#define LINUX_NEXT_TAB      KC_LALT(KC_TAB)
-#define LINUX_PREV_TAB      KC_LALT(KC_LSHIFT(KC_TAB))
-#define LINUX_NEXT_WORD     KC_LCTRL(KC_RGHT)
-#define LINUX_PREV_WORD     KC_LCTRL(KC_LEFT)
-#define LINUX_CUT           KC_LCTRL(KC_X)
-#define LINUX_COPY          KC_LCTRL(KC_C)
-#define LINUX_PASTE         KC_LCTRL(KC_V)
-#define LINUX_UNDO          KC_LCTRL(KC_X)
-#define LINUX_REDO          KC_LCTRL(KC_Y)
+// OS setting for macro keys
+enum {
+    OS_LINUX = 0,
+    OS_MAC,
+    OS_WIN,
+};
+int OS = OS_LINUX;
 
-// OS function macro keys
+// OS macro keycodes
 enum custom_keycodes {
     OS_MOD1 = SAFE_RANGE,
     OS_MOD2,
@@ -52,11 +61,32 @@ enum custom_keycodes {
     SET_OS_MAC,
 };
 
-// OS key lookup table
+// index for mapping custom os key to os-specific keycodes
+enum custom_keycode_index {
+    _OS_MOD1 = 0,
+    _OS_MOD2,
+    _OS_MOD3,
+    _OS_NEXT_APP,
+    _OS_PREV_APP,
+    _OS_NEXT_TAB,
+    _OS_PREV_TAB,
+    _OS_NEXT_WORD,
+    _OS_PREV_WORD,
+    _OS_CUT,
+    _OS_COPY,
+    _OS_PASTE,
+    _OS_UNDO,
+    _OS_REDO,
+
+    _SET_OS_LINUX,
+    _SET_OS_MAC,
+};
+
+// OS macro keycode lookup
 uint16_t os_keys[][2] = {
-    [OS_MOD1] = {LINUX_MOD1, MAC_MOD1},
-    [OS_MOD2] = {LINUX_MOD2, MAC_MOD2},
-    [OS_MOD3] = {LINUX_MOD3, MAC_MOD3},
+    [_OS_MOD1] = {LIN_MOD1, MAC_MOD1},
+    [_OS_MOD2] = {LIN_MOD2, MAC_MOD2},
+    [_OS_MOD3] = {LIN_MOD3, MAC_MOD3},
 };
 
 // Tap dance declarations
@@ -67,14 +97,6 @@ qk_tap_dance_action_t tap_dance_actions[] = {
   [TD_SFTLOCK]  = ACTION_TAP_DANCE_DOUBLE(OSM(KC_LSFT), KC_CAPS)
 };
 
-// OS toggles for macro keys
-enum {
-    OS_LINUX = 0,
-    OS_MAC,
-    OS_WIN,
-};
-// Default OS
-int OS = OS_LINUX;
 
 enum planck_layers {
   _COLEMAK,
@@ -106,20 +128,29 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     )
 };
 
-void process_os_macro(keyrecord_t *record, uint16_t keycode) {
-    // uint16_t code = os_keys[keycode][OS];
-    // if (record->event.pressed) {
-    //     register_code16(code);
-    // } else {
-    //     unregister_code16(code);
-    // }
+void process_os_macro(keyrecord_t *record, uint16_t codes_index) {
+    uint16_t code = os_keys[codes_index][OS];
+    if (record->event.pressed) {
+        register_code16(code);
+    } else {
+        unregister_code16(code);
+    }
+}
+
+void process_os_set(keyrecord_t *record, int os) {
+    if (record->event.pressed) {
+        OS = os;
+    }
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
-        case OS_MOD1: process_os_macro(record, OS_MOD1); break;
-        case OS_MOD2: process_os_macro(record, OS_MOD2); break;
-        case OS_MOD3: process_os_macro(record, OS_MOD3); break;
+        case OS_MOD1: process_os_macro(record, _OS_MOD1); break;
+        case OS_MOD2: process_os_macro(record, _OS_MOD2); break;
+        case OS_MOD3: process_os_macro(record, _OS_MOD3); break;
+
+        case SET_OS_LINUX:  process_os_set(record, OS_LINUX); break;
+        case SET_OS_MAC:    process_os_set(record, OS_MAC); break;
     }
     return true;
 }
