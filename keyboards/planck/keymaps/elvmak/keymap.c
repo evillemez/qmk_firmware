@@ -53,13 +53,11 @@ enum custom_keycodes {
 };
 
 // OS key lookup table
-/*
-int os_keys[][2] = {
+uint16_t os_keys[][2] = {
     [OS_MOD1] = {LINUX_MOD1, MAC_MOD1},
     [OS_MOD2] = {LINUX_MOD2, MAC_MOD2},
     [OS_MOD3] = {LINUX_MOD3, MAC_MOD3},
 };
-*/
 
 // Tap dance declarations
 enum {
@@ -108,17 +106,20 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     )
 };
 
-void os_macro(keyrecord_t *record, int codes[]) {
-    if (record->event.pressed) {
-        register_code(codes[OS]);
-    } else {
-        unregister_code(codes[OS]);
-    }
+void process_os_macro(keyrecord_t *record, uint16_t keycode) {
+    // uint16_t code = os_keys[keycode][OS];
+    // if (record->event.pressed) {
+    //     register_code16(code);
+    // } else {
+    //     unregister_code16(code);
+    // }
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
-        // case OS_MOD1: os_macro(record, os_keys[OS_MOD1]); break;
+        case OS_MOD1: process_os_macro(record, OS_MOD1); break;
+        case OS_MOD2: process_os_macro(record, OS_MOD2); break;
+        case OS_MOD3: process_os_macro(record, OS_MOD3); break;
     }
     return true;
 }
