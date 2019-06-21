@@ -13,8 +13,9 @@
 #define LIN_CUT           LCTL(KC_X)
 #define LIN_COPY          LCTL(KC_C)
 #define LIN_PASTE         LCTL(KC_V)
-#define LIN_UNDO          LCTL(KC_X)
+#define LIN_UNDO          LCTL(KC_Z)
 #define LIN_REDO          LCTL(KC_Y)
+#define LIN_SEL_ALL       LCTL(KC_A)
 
 // macOS key shortcuts
 #define MAC_MOD1            KC_LGUI
@@ -31,6 +32,7 @@
 #define MAC_PASTE           LGUI(KC_V)
 #define MAC_UNDO            LGUI(KC_Z)
 #define MAC_REDO            LGUI(LSFT(KC_Z))
+#define MAC_SEL_ALL         LGUI(KC_A)
 
 // OS setting for macro keys
 enum {
@@ -56,6 +58,7 @@ enum custom_keycodes {
     OS_PASTE,
     OS_UNDO,
     OS_REDO,
+    OS_SEL_ALL,
 
     SET_OS_LINUX,
     SET_OS_MAC,
@@ -77,6 +80,7 @@ enum custom_keycode_index {
     _OS_PASTE,
     _OS_UNDO,
     _OS_REDO,
+    _OS_SEL_ALL,
 
     _SET_OS_LINUX,
     _SET_OS_MAC,
@@ -98,6 +102,7 @@ uint16_t os_keys[][2] = {
     [_OS_PASTE] = {LIN_PASTE, MAC_PASTE},
     [_OS_UNDO] = {LIN_UNDO, MAC_UNDO},
     [_OS_REDO] = {LIN_REDO, MAC_REDO},
+    [_OS_SEL_ALL] = {LIN_SEL_ALL, MAC_SEL_ALL},
 };
 
 // Tap dance declarations
@@ -126,7 +131,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         XXXXXXX, OS_MOD3, OS_MOD2, OS_MOD1, MO(_CURSOR), KC_SPC, KC_SPC, MO(_SYMBOLS), OS_MOD1, OS_MOD2, OS_MOD3, XXXXXXX
     ),
 	[_CURSOR] = LAYOUT_planck_grid(
-        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, OS_CUT, OS_PREV_WORD, KC_UP, OS_NEXT_WORD, XXXXXXX, KC_DEL,
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, OS_CUT, OS_PREV_WORD, KC_UP, OS_NEXT_WORD, OS_SEL_ALL, KC_DEL,
         XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, OS_COPY, KC_LEFT, KC_DOWN, KC_RGHT, OS_UNDO, KC_ENT,
         _______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, OS_PASTE, KC_HOME, XXXXXXX, KC_END, OS_REDO,_______,
         XXXXXXX, _______, _______, _______, XXXXXXX, KC_SPC, KC_SPC, MO(_NAV), _______, _______, _______, XXXXXXX
@@ -141,15 +146,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_GRV, KC_1, KC_2, KC_3, KC_4, KC_5, KC_6, KC_7, KC_8, KC_9, KC_0, KC_PIPE,
         KC_UNDS, KC_EXLM, KC_AT, KC_HASH, KC_DLR, KC_PERC, KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, XXXXXXX,
         LSFT(KC_GRV), KC_PPLS, KC_PMNS, KC_PEQL, KC_LCBR, KC_RCBR, KC_LBRC, KC_RBRC, KC_SCLN, KC_COLN, KC_BSLS, XXXXXXX,
-        // KC_A, KC_A, KC_A, KC_A, KC_A, KC_SPC, KC_SPC, KC_A, KC_A, KC_A, KC_A, KC_A // for testing
         XXXXXXX, _______, _______, _______, MO(_PUNCT), KC_SPC, KC_SPC, XXXXXXX, _______, _______, _______, XXXXXXX
     ),
     [_PUNCT] = LAYOUT_planck_grid(
-        KC_GRV, KC_1, KC_2, KC_3, KC_4, KC_5, KC_6, KC_7, KC_8, KC_9, KC_0, KC_PIPE,
-        KC_UNDS, KC_EXLM, KC_AT, KC_HASH, KC_DLR, KC_PERC, KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, XXXXXXX,
-        LSFT(KC_GRV), KC_PPLS, KC_PMNS, KC_PEQL, KC_LCBR, KC_RCBR, KC_LBRC, KC_RBRC, KC_SCLN, KC_COLN, KC_BSLS, XXXXXXX,
-        // KC_A, KC_A, KC_A, KC_A, KC_A, KC_SPC, KC_SPC, KC_A, KC_A, KC_A, KC_A, KC_A // for testing
-        XXXXXXX, _______, _______, _______, XXXXXXX, KC_SPC, KC_SPC, XXXXXXX, _______, _______, _______, XXXXXXX
+        XXXXXXX, XXXXXXX, KC_1, KC_2, KC_3, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_QUOT, XXXXXXX,
+        XXXXXXX, XXXXXXX, KC_4, KC_5, KC_6, XXXXXXX, XXXXXXX, XXXXXXX, KC_COMM, KC_DOT, KC_SLSH,  XXXXXXX,
+        XXXXXXX, XXXXXXX, KC_7, KC_8, KC_9, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_SPC, KC_SPC, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
     )
 };
 
@@ -184,6 +187,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case OS_PASTE: process_os_macro(record, _OS_PASTE); break;
         case OS_UNDO: process_os_macro(record, _OS_UNDO); break;
         case OS_REDO: process_os_macro(record, _OS_REDO); break;
+        case OS_SEL_ALL: process_os_macro(record, _OS_SEL_ALL); break;
 
         case SET_OS_LINUX:  process_os_set(record, OS_LINUX); break;
         case SET_OS_MAC:    process_os_set(record, OS_MAC); break;
