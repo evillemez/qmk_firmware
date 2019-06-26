@@ -10,6 +10,8 @@
 #define LIN_PREV_TAB      LCTL(LSFT(KC_TAB))
 #define LIN_NEXT_WORD     LCTL(KC_RGHT)
 #define LIN_PREV_WORD     LCTL(KC_LEFT)
+#define LIN_LINE_BEGIN    KC_HOME
+#define LIN_LINE_END      KC_END
 #define LIN_CUT           LCTL(KC_X)
 #define LIN_COPY          LCTL(KC_C)
 #define LIN_PASTE         LCTL(KC_V)
@@ -27,6 +29,8 @@
 #define MAC_PREV_TAB        LCTL(LSFT(KC_TAB))
 #define MAC_NEXT_WORD       LALT(KC_RGHT)
 #define MAC_PREV_WORD       LALT(KC_LEFT)
+#define MAC_LINE_BEGIN      LGUI(KC_LEFT)
+#define MAC_LINE_END        LGUI(KC_RIGHT)
 #define MAC_CUT             LGUI(KC_X)
 #define MAC_COPY            LGUI(KC_C)
 #define MAC_PASTE           LGUI(KC_V)
@@ -53,6 +57,8 @@ enum custom_keycodes {
     OS_PREV_TAB,
     OS_NEXT_WORD,
     OS_PREV_WORD,
+    OS_LINE_BEGIN,
+    OS_LINE_END,
     OS_CUT,
     OS_COPY,
     OS_PASTE,
@@ -75,6 +81,8 @@ enum custom_keycode_index {
     _OS_PREV_TAB,
     _OS_NEXT_WORD,
     _OS_PREV_WORD,
+    _OS_LINE_BEGIN,
+    _OS_LINE_END,
     _OS_CUT,
     _OS_COPY,
     _OS_PASTE,
@@ -97,6 +105,8 @@ uint16_t os_keys[][2] = {
     [_OS_PREV_TAB] = {LIN_PREV_TAB, MAC_PREV_TAB},
     [_OS_NEXT_WORD] = {LIN_NEXT_WORD, MAC_NEXT_WORD},
     [_OS_PREV_WORD] = {LIN_PREV_WORD, MAC_PREV_WORD},
+    [_OS_LINE_BEGIN] = {LIN_LINE_BEGIN, MAC_LINE_BEGIN},
+    [_OS_LINE_END] = {LIN_LINE_END, MAC_LINE_END},
     [_OS_CUT] = {LIN_CUT, MAC_CUT},
     [_OS_COPY] = {LIN_COPY, MAC_COPY},
     [_OS_PASTE] = {LIN_PASTE, MAC_PASTE},
@@ -120,6 +130,7 @@ enum planck_layers {
   _NAV,
   _SYMBOLS,
   _PUNCT,
+  _FN,
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -128,13 +139,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_ESC, KC_Q, KC_W, KC_F, KC_P, KC_G, KC_J, KC_L, KC_U, KC_Y, KC_QUOT, KC_BSPC,
         KC_TAB, KC_A, KC_R, KC_S, KC_T, KC_D, KC_H, KC_N, KC_E, KC_I, KC_O, KC_ENT,
         TD(TD_SFTLOCK), KC_Z, KC_X, KC_C, KC_V, KC_B, KC_K, KC_M, KC_COMM, KC_DOT, KC_SLSH, TD(TD_SFTLOCK),
-        XXXXXXX, OS_MOD3, OS_MOD2, OS_MOD1, MO(_CURSOR),   KC_SPC,   MO(_SYMBOLS), OS_MOD1, OS_MOD2, OS_MOD3, XXXXXXX
+        MO(_FN), OS_MOD3, OS_MOD2, OS_MOD1, MO(_CURSOR),   KC_SPC,   MO(_SYMBOLS), OS_MOD1, OS_MOD2, OS_MOD3, MO(_FN)
     ),
 	[_CURSOR] = LAYOUT_planck_1x2uC(
         XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, OS_CUT, OS_PREV_WORD, KC_UP, OS_NEXT_WORD, OS_SEL_ALL, KC_DEL,
         XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, OS_COPY, KC_LEFT, KC_DOWN, KC_RGHT, OS_UNDO, KC_ENT,
-        _______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, OS_PASTE, KC_HOME, XXXXXXX, KC_END, OS_REDO,_______,
-        XXXXXXX, _______, _______, _______, XXXXXXX,   KC_SPC,   MO(_NAV), _______, _______, _______, XXXXXXX
+        _______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, OS_PASTE, OS_LINE_BEGIN, XXXXXXX, OS_LINE_END, OS_REDO,_______,
+        _______, _______, _______, _______, XXXXXXX,   KC_SPC,   MO(_NAV), _______, _______, _______, _______
     ),
     [_NAV] = LAYOUT_planck_1x2uC(
         XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, OS_PREV_TAB, XXXXXXX, OS_NEXT_TAB, XXXXXXX, XXXXXXX,
@@ -145,16 +156,30 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 	[_SYMBOLS] = LAYOUT_planck_1x2uC(
         KC_GRV, KC_1, KC_2, KC_3, KC_4, KC_5, KC_6, KC_7, KC_8, KC_9, KC_0, KC_PIPE,
         KC_UNDS, KC_EXLM, KC_AT, KC_HASH, KC_DLR, KC_PERC, KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, XXXXXXX,
-        LSFT(KC_GRV), KC_PPLS, KC_PMNS, KC_PEQL, KC_LCBR, KC_RCBR, KC_LBRC, KC_RBRC, KC_SCLN, KC_COLN, KC_BSLS, XXXXXXX,
-        XXXXXXX, _______, _______, _______, MO(_PUNCT),   KC_SPC,   XXXXXXX, _______, _______, _______, XXXXXXX
+        LSFT(KC_GRV), KC_PLUS, KC_MINS, KC_PEQL, KC_LCBR, KC_RCBR, KC_LBRC, KC_RBRC, KC_SCLN, KC_COLN, KC_BSLS, XXXXXXX,
+        _______, _______, _______, _______, MO(_PUNCT),   KC_SPC,   XXXXXXX, _______, _______, _______, _______
     ),
     [_PUNCT] = LAYOUT_planck_1x2uC(
-        XXXXXXX, XXXXXXX, KC_1, KC_2, KC_3, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_QUOT, XXXXXXX,
-        XXXXXXX, XXXXXXX, KC_4, KC_5, KC_6, XXXXXXX, XXXXXXX, XXXXXXX, KC_COMM, KC_DOT, KC_SLSH,  XXXXXXX,
-        XXXXXXX, XXXXXXX, KC_7, KC_8, KC_9, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
-        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,   KC_SPC,   XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
+        XXXXXXX, KC_0, KC_1, KC_2, KC_3, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_QUOT, XXXXXXX,
+        XXXXXXX, XXXXXXX, KC_4, KC_5, KC_6, XXXXXXX, XXXXXXX, XXXXXXX, KC_LT, KC_GT, KC_DQT, XXXXXXX,
+        _______, XXXXXXX, KC_7, KC_8, KC_9, XXXXXXX, XXXXXXX, XXXXXXX, KC_COMM, KC_DOT, KC_QUES, _______,
+        XXXXXXX, _______, _______, _______, XXXXXXX,   KC_SPC,   XXXXXXX, _______, _______, _______, XXXXXXX
+    ),
+    [_FN] = LAYOUT_planck_1x2uC(
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        XXXXXXX, KC_F1, KC_F2, KC_F3, KC_F4, KC_F5, KC_F6, KC_F7, KC_F8, KC_F9, KC_F10, XXXXXXX,
+        _______, KC_F11, KC_F12, KC_F13, KC_F14, KC_F15, KC_F16, KC_F17, KC_F18, KC_F19, KC_F20, _______,
+        XXXXXXX, _______, _______, _______, XXXXXXX,   KC_SPC,   XXXXXXX, _______, _______, _______, XXXXXXX
     )
 };
+
+/*
+Empty(ish) layout for copy/paste
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        XXXXXXX, _______, _______, _______, XXXXXXX,   KC_SPC,   XXXXXXX, _______, _______, _______, XXXXXXX
+ */
 
 void process_os_macro(keyrecord_t *record, uint16_t codes_index) {
     uint16_t code = os_keys[codes_index][OS];
@@ -182,6 +207,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case OS_PREV_TAB: process_os_macro(record, _OS_PREV_TAB); break;
         case OS_NEXT_WORD: process_os_macro(record, _OS_NEXT_WORD); break;
         case OS_PREV_WORD: process_os_macro(record, _OS_PREV_WORD); break;
+        case OS_LINE_BEGIN: process_os_macro(record, _OS_LINE_BEGIN); break;
+        case OS_LINE_END: process_os_macro(record, _OS_LINE_END); break;
         case OS_CUT: process_os_macro(record, _OS_CUT); break;
         case OS_COPY: process_os_macro(record, _OS_COPY); break;
         case OS_PASTE: process_os_macro(record, _OS_PASTE); break;
