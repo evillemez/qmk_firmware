@@ -48,11 +48,10 @@ int OS = OS_LINUX;
 
 // OS macro keycodes
 enum custom_keycodes {
+    // regular keypresses
     OS_MOD1 = SAFE_RANGE,
     OS_MOD2,
     OS_MOD3,
-    OS_NEXT_APP,
-    OS_PREV_APP,
     OS_NEXT_TAB,
     OS_PREV_TAB,
     OS_NEXT_WORD,
@@ -66,6 +65,11 @@ enum custom_keycodes {
     OS_REDO,
     OS_SEL_ALL,
 
+    // require custom handling, not as simple as just sending keycodes
+    OS_NEXT_APP,
+    OS_PREV_APP,
+
+    // keyboard OS mode
     SET_OS_LINUX,
     SET_OS_MAC,
 };
@@ -75,8 +79,6 @@ enum custom_keycode_index {
     _OS_MOD1 = 0,
     _OS_MOD2,
     _OS_MOD3,
-    _OS_NEXT_APP,
-    _OS_PREV_APP,
     _OS_NEXT_TAB,
     _OS_PREV_TAB,
     _OS_NEXT_WORD,
@@ -89,9 +91,6 @@ enum custom_keycode_index {
     _OS_UNDO,
     _OS_REDO,
     _OS_SEL_ALL,
-
-    _SET_OS_LINUX,
-    _SET_OS_MAC,
 };
 
 // OS macro keycode lookup
@@ -99,8 +98,6 @@ uint16_t os_keys[][2] = {
     [_OS_MOD1] = {LIN_MOD1, MAC_MOD1},
     [_OS_MOD2] = {LIN_MOD2, MAC_MOD2},
     [_OS_MOD3] = {LIN_MOD3, MAC_MOD3},
-    [_OS_NEXT_APP] = {LIN_NEXT_APP, MAC_NEXT_APP},
-    [_OS_PREV_APP] = {LIN_PREV_APP, MAC_PREV_APP},
     [_OS_NEXT_TAB] = {LIN_NEXT_TAB, MAC_NEXT_TAB},
     [_OS_PREV_TAB] = {LIN_PREV_TAB, MAC_PREV_TAB},
     [_OS_NEXT_WORD] = {LIN_NEXT_WORD, MAC_NEXT_WORD},
@@ -115,6 +112,24 @@ uint16_t os_keys[][2] = {
     [_OS_SEL_ALL] = {LIN_SEL_ALL, MAC_SEL_ALL},
 };
 
+// keycodes for switching apps, first set is next app, second
+// set is previous app
+enum os_app_switch_directions {
+    APP_SWITCH_NEXT = 0,
+    APP_SWITCH_PREV,
+};
+uint16_t os_app_switch_keys[][2][2] = {
+    [OS_LINUX] = {
+        [APP_SWITCH_NEXT] = {KC_LALT, KC_TAB},
+        [APP_SWITCH_PREV] = {KC_LALT, LSFT(KC_TAB)},
+    },
+    [OS_MAC] = {
+        [APP_SWITCH_NEXT] = {KC_LGUI, KC_TAB},
+        [APP_SWITCH_PREV] = {KC_LGUI, LSFT(KC_TAB)},
+    },
+};
+
+
 // Tap dance declarations
 enum {
   TD_SFTLOCK = 0  // Tap once for OSM shift, twice for Caps Lock
@@ -122,7 +137,6 @@ enum {
 qk_tap_dance_action_t tap_dance_actions[] = {
   [TD_SFTLOCK]  = ACTION_TAP_DANCE_DOUBLE(OSM(KC_LSFT), KC_CAPS)
 };
-
 
 enum planck_layers {
   _COLEMAK,
@@ -196,13 +210,30 @@ void process_os_set(keyrecord_t *record, int os) {
     }
 }
 
+bool app_switch_modifier_enabled = false;
+uint16_t app_switch_modifier_code;
+void process_os_app_switch(keyrecord_t *record, int direction) {
+    if (record->event.pressed) {
+        uint16_t modifier_code = os_app_switch_keys[OS][direction][0];
+        uint16_t key_code = os_app_switch_keys[OS][direction][1];
+
+        if (!app_switch_modifier_enabled) {
+            app_switch_modifier_enabled = true;
+            app_switch_modifier_code = modifier_code;
+            register_code(modifier_code);
+        }
+        tap_code16(key_code);
+    }
+
+    // NOTE: not unregistering the modifier on purpose - it stays active until the layer
+    // is released
+}
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case OS_MOD1: process_os_macro(record, _OS_MOD1); break;
         case OS_MOD2: process_os_macro(record, _OS_MOD2); break;
         case OS_MOD3: process_os_macro(record, _OS_MOD3); break;
-        case OS_NEXT_APP: process_os_macro(record, _OS_NEXT_APP); break;
-        case OS_PREV_APP: process_os_macro(record, _OS_PREV_APP); break;
         case OS_NEXT_TAB: process_os_macro(record, _OS_NEXT_TAB); break;
         case OS_PREV_TAB: process_os_macro(record, _OS_PREV_TAB); break;
         case OS_NEXT_WORD: process_os_macro(record, _OS_NEXT_WORD); break;
@@ -216,8 +247,32 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case OS_REDO: process_os_macro(record, _OS_REDO); break;
         case OS_SEL_ALL: process_os_macro(record, _OS_SEL_ALL); break;
 
+        case OS_NEXT_APP: process_os_app_switch(record, APP_SWITCH_NEXT); break;
+        case OS_PREV_APP: process_os_app_switch(record, APP_SWITCH_PREV); break;
+
         case SET_OS_LINUX:  process_os_set(record, OS_LINUX); break;
         case SET_OS_MAC:    process_os_set(record, OS_MAC); break;
     }
     return true;
+}
+
+uint32_t layer_state_set_user(uint32_t state) {
+
+    switch (biton32(state)) {
+
+    // don't actually do anything for this layer
+    case _NAV: break;
+
+    // in all other cases, do stuff that doesn't pertain to the _NAV layer
+    default:
+        // if the app switcher was enabled, disable it by releasing the
+        // corresponding modifier key for the platform
+        if (app_switch_modifier_enabled) {
+            app_switch_modifier_enabled = false;
+            unregister_code(app_switch_modifier_code);
+        }
+        break;
+    }
+
+    return state;
 }
