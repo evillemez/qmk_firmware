@@ -11,3 +11,23 @@ To make use of this file you will need follow the following steps:
 * You are now ready to compile or use your keymap with the source
 
 More information can be found in the QMK docs: <https://docs.qmk.fm>
+
+## Notes from ELV
+
+The general guide for how to build/flash the firmware via Docker is online here: https://beta.docs.qmk.fm/using-qmk/guides/development-environments/getting_started_docker
+
+I'm including the highlights below in case the link breaks in the future:
+
+After cloning the repo, make sure submodules are included and initialized:
+
+    git submodule update --init --recursive
+
+To just build:
+
+    util/docker_build.sh <keyboard>:<keymap>
+    # For example: util/docker_build.sh planck/rev6:elvmak
+
+To build AND flash: 
+
+    util/docker_build.sh keyboard:keymap:target
+    # For example: util/docker_build.sh planck/rev6:elvmak:dfu-util
